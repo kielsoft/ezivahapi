@@ -17,8 +17,8 @@ return new Phalcon\Config(
             'baseUri'       => '/'
         ],
         'apiKeyToken'       => [
-            'appKeyId'        => '59146428466177992482',
-            'appKeySecret'    => 'tkQ03VCcziNtG5qmrh1cKXKQDEEkqojUGnL7tYgW',
+            'appKeyId'        => '',
+            'appKeySecret'    => '',
         ]
     ]
 );
