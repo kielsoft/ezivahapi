@@ -59,6 +59,8 @@ try {
 
     $booksCollection->get('/getdownloads/{book_id:[0-9]+}', 'getDownloadHitNumber');
 
+    $booksCollection->get('/get-epub-file/{book_id:[0-9]+}/{user_id}', 'getEpubFile');
+
     //POST API CALLS
     $booksCollection->post('/savehighlights', 'createHighlights');
 

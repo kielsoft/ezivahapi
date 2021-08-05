@@ -502,12 +502,7 @@ class BooksController extends BaseInjectable {
         )->send();
     }
 
-    /**
-     * @param int $id
-     * Data type Integer
-     */
-    //Get book details by book_id
-    public function getBookDetailsById(int $id){
+    private function _getBookDataById(int $id) {
         $queryBuilder   = $this->modelsManager->createBuilder()
             ->columns(
                 [
@@ -536,7 +531,7 @@ class BooksController extends BaseInjectable {
             ->innerJoin('App\Models\BookFiles', 'P.id = B.book_id', 'B')
             ->getQuery()->getSingleResult();
 
-        $haystack[] = [
+        $haystack = [
             "id"            => $queryBuilder->id,
             "title"         => $queryBuilder->title,
             "category_id"   => $queryBuilder->category_id,
@@ -555,10 +550,19 @@ class BooksController extends BaseInjectable {
             "ratings"       => $this->getCountRatings($queryBuilder->id)
         ];
 
+        return $haystack;
+    }
+
+    /**
+     * @param int $id
+     * Data type Integer
+     */
+    //Get book details by book_id
+    public function getBookDetailsById(int $id){
         $this->response->setJsonContent(
             [
                 "status"    => "OK",
-                "results"   => $haystack
+                "results"   => [$this->_getBookDataById($id)]
             ]
         )->send();
     }
@@ -926,6 +930,22 @@ class BooksController extends BaseInjectable {
 
         $this->response->setJsonContent($visitDownload)->send();
     }
+    
+    /**
+     * @param $bookId
+     */
+    //Get Epub file and increment download count
+    public function getEpubFile(int $book_id, $user_id){
+        $bookData = $this->_getBookDataById($bookId);
+
+        // TODO
+        // increase the download count here
+        $this->_saveDownloads($book_id, $user_id);
+
+
+        // Redirect to book
+        return $this->response->redirect("/ezivah/uploads/files/{$bookData['book_file']}");
+    }
 
     //Create the Numbers of downloads
     public function setBookDownloadVisit(){
@@ -1053,9 +1073,8 @@ class BooksController extends BaseInjectable {
 
     public function saveDownloads(){
         $requestType    = $this->_requestTypeQuery();
-        $checkExisted   = Orders::findFirst("user_id = '".$requestType['user_id']
-            ."' AND book_id = '".$requestType['book_id']."'");
-        if($checkExisted == false) {
+        $checkExisted   = $this->_saveDownloads($requestType['book_id'], $requestType['user_id']);
+        if(!(bool)$checkExisted) {
             $order = new Orders();
             if ($order->create($this->_requestTypeQuery())) {
                 $this->response->setJsonContent(
@@ -1082,6 +1101,11 @@ class BooksController extends BaseInjectable {
                 ]
             )->send();
         }
+    }
+    
+    private function _saveDownloads($book_id, $user_id){
+        return Orders::findFirst("user_id = '". $user_id
+            ."' AND book_id = '". $book_id ."'");
     }
 
 }
